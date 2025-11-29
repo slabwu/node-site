@@ -1,5 +1,5 @@
 const http = require('http')
-const fs = require('fs')
+const fs = require('node:fs/promises')
 
 const host = 'localhost'
 const port = 8080
@@ -10,26 +10,27 @@ httpServer.listen(port, host, () => {
     console.log(`HTTP server running at http://${host}:${port}/`)
 })
 
-function httpHandler(req, res) {
+async function httpHandler(req, res) {
     const routes = {
         '/': '/index',
         '/about': '/about',
         '/contact-me': '/contact-me'
     }
     
-    const route = routes[req.url] || '/404'
-    loadRoute(route, res)
+    const route = routes[req.url] || ''
+    await load(route, res)
 }
 
-function loadRoute(url, res) {
-    fs.readFile('./public' + url + '.html', (err, data) => {
-        if (!err) {
-            res.writeHead(200, {'Content-Type': 'text/html'})
-            res.write(data)
-            res.end()
-        } else {
-            res.writeHead(404, {'Content-Type': 'text/html'})
-            res.end('404 Not Found')
-        }
-    })
+async function load(url, res) {
+    let data
+    try {
+        data = await fs.readFile('./public' + url + '.html')
+        res.writeHead(200, {'Content-Type': 'text/html'})
+    } catch (err) {
+        data = await fs.readFile(('./public/404.html'))
+        res.writeHead(404, {'Content-Type': 'text/html'})
+    } finally {
+        res.write(data)
+        res.end()
+    }
 }
