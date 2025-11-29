@@ -1,38 +1,28 @@
-const http = require('http')
-const fs = require('node:fs/promises')
 require('dotenv').config()
+const express = require('express')
+const path = require('path')
+const app = express()
+const PORT = 8080
+const filename = (file) => path.join(__dirname, 'public', file + '.html')
 
-const host = 'localhost'
-const port = 8080
+const routes = {
+    '/': '/index',
+    '/about': '/about',
+    '/contact-me': '/contact-me'
+}
+const routesList = Object.keys(routes)
 
-const httpServer = http.createServer(httpHandler)
-
-httpServer.listen(port, host, () => {
-    console.log(`HTTP server running at http://${host}:${port}/`)
-    console.log(`Watch this funny video: ${process.env.VIDEO_URL}`)
+app.get(routesList, (req, res) => {
+    const file = routes[req.path] || '/404'
+    res.sendFile(filename(file))
 })
 
-async function httpHandler(req, res) {
-    const routes = {
-        '/': '/index',
-        '/about': '/about',
-        '/contact-me': '/contact-me'
-    }
-    
-    const route = routes[req.url] || ''
-    await load(route, res)
-}
+app.use((req, res) => {
+    res.status(404).sendFile(filename('404'))
+})
 
-async function load(url, res) {
-    let data
-    try {
-        data = await fs.readFile('./public' + url + '.html')
-        res.writeHead(200, {'Content-Type': 'text/html'})
-    } catch (err) {
-        data = await fs.readFile(('./public/404.html'))
-        res.writeHead(404, {'Content-Type': 'text/html'})
-    } finally {
-        res.write(data)
-        res.end()
-    }
-}
+app.listen(PORT, error => {
+    if (error) throw error
+    console.log(`Listening on port ${PORT}`)
+    console.log(`Watch this funny video: ${process.env.VIDEO_URL}`)
+})
