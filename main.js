@@ -1,5 +1,6 @@
 const http = require('http')
 const fs = require('node:fs/promises')
+require('dotenv').config()
 
 const host = 'localhost'
 const port = 8080
@@ -8,6 +9,7 @@ const httpServer = http.createServer(httpHandler)
 
 httpServer.listen(port, host, () => {
     console.log(`HTTP server running at http://${host}:${port}/`)
+    console.log(`Watch this funny video: ${process.env.VIDEO_URL}`)
 })
 
 async function httpHandler(req, res) {
